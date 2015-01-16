@@ -3,7 +3,7 @@
 
   "name": "Tab Menu",
   "description": "Have tabs in a handy searchable list",
-  "version": "0.1",
+  "version": "0.2",
 
   "permissions": [
     "tabs"

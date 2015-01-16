@@ -1,0 +1,36 @@
+#tabs {
+  height: 650px;
+  width: 500px;
+
+  img {
+    height: 16px;
+    margin-right: 10px;
+    width: 16px;
+  }
+}
+
+a.list-group-item {
+  padding-bottom: 6px;
+  padding-top: 6px;
+}
+
+.top {
+  input {
+    width: 91%;
+    display: inline-block;
+  }
+}
+
+.form-control {
+  height: 33px;
+}
+
+.close {
+  margin-top: -6px;
+  padding: 6px;
+
+  &:hover {
+    background-color: #999;
+    color: #fff;
+  }
+}
