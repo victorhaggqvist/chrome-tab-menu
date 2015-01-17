@@ -4,15 +4,6 @@
   var filterBox = document.querySelector('#filter');
   var _filter;
 
-  chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, function(tabs){
-    _tabs = tabs;
-    console.log(tabs);
-    for (var i = 0; i < tabs.length; i++) {
-      // tablist.append('<a href="#" class="list-group-item'+((tabs[i].selected)?" active":"")+'" data-id="'+tabs[i].id+'"><span class="pull-right close">&times;</span><img src="'+tabs[i].favIconUrl+'"><marquee onmouseout="this.stop()" onmouseover="this.start()">'+tabs[i].title+'</marquee></a>');
-      tablist.innerHTML = tablist.innerHTML+_renderItem(tabs[i].selected, tabs[i].id, tabs[i].favIconUrl, tabs[i].title);
-    }
-  });
-
   tablist.onclick = function(event) {
     event.preventDefault();
 
@@ -24,7 +15,7 @@
       //console.log(event);
       //console.log(event.target);
       //console.log('update');
-      chrome.tabs.update(parseInt(event.target.getAttribute('data-id')),{highlighted: true},function(){});
+      chrome.tabs.update(parseInt(event.target.getAttribute('data-id')),{active: true},function(){});
     } else {
       //console.log('closing');
       // console.log($(event.target).attr('data-id'));
@@ -53,11 +44,21 @@
     //console.log(_tabs);
     _tabs.forEach(function (ele) {
       if (regex.test(ele.title))
-        html += _renderItem(ele.selected, ele.id, ele.favIconUrl, ele.title);
+        html += _renderItem(ele.active, ele.id, ele.favIconUrl, ele.title);
     });
 
     tablist.innerHTML = html;
   };
+
+  chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, function(tabs){
+    _tabs = tabs;
+    console.log(tabs);
+    _renderList();
+    //for (var i = 0; i < tabs.length; i++) {
+    //  // tablist.append('<a href="#" class="list-group-item'+((tabs[i].selected)?" active":"")+'" data-id="'+tabs[i].id+'"><span class="pull-right close">&times;</span><img src="'+tabs[i].favIconUrl+'"><marquee onmouseout="this.stop()" onmouseover="this.start()">'+tabs[i].title+'</marquee></a>');
+    //  tablist.innerHTML = tablist.innerHTML+_renderItem(tabs[i].highlighted, tabs[i].id, tabs[i].favIconUrl, tabs[i].title);
+    //}
+  });
 
   filterBox.onkeyup = function () {
     _filter = filterBox.value;
