@@ -1,6 +1,8 @@
 #tabs {
   height: 650px;
   width: 500px;
+  margin-top: 36px;
+  margin-bottom: 0;
 
   img {
     height: 16px;
@@ -15,6 +17,11 @@ a.list-group-item {
 }
 
 .top {
+  position: fixed;
+  right: 0;
+  left: 0;
+  top:0;
+  z-index: 1030;
   input {
     width: 91%;
     display: inline-block;

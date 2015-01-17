@@ -45,6 +45,17 @@ gulp.task('copy', function () {
     .pipe(gulp.dest('./dist/fonts'));
 });
 
+gulp.task('copy:dist', function () {
+  runSequence('copy');
+});
+
+gulp.task('copy:debug', function () {
+  runSequence('copy');
+
+  gulp.src('tabmenu.js').pipe(gulp.dest('./dist'));
+  gulp.src('popup.html').pipe(gulp.dest('./dist'));
+});
+
 gulp.task('minify', function () {
   gulp.src('tabmenu.js')
     .pipe(uglify())
@@ -67,6 +78,9 @@ gulp.task('icons', function () {
   });
 });
 
+gulp.task('build:dist', function (cb) {
+  runSequence('clean', ['css', 'lint', 'minify', 'copy:dist', 'icons'], cb);
+});
 gulp.task('build', function (cb) {
-  runSequence('clean', ['css', 'lint', 'minify', 'copy', 'icons'], cb);
+  runSequence('clean', ['css', 'lint', 'copy:debug', 'icons'], cb);
 });

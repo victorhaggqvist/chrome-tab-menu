@@ -3,13 +3,15 @@
   var _tabs;
   var filterBox = document.querySelector('#filter');
   var _filter;
+  var _key = {UP:38, DOWN:40, ENTER:13};
+  var _selected = -1;
 
   tablist.onclick = function(event) {
     event.preventDefault();
 
-    console.log(event);
-    console.log(event.target);
-    console.log('data close'+ event.target.getAttribute('data-close'));
+    //console.log(event);
+    //console.log(event.target);
+    //console.log('data close'+ event.target.getAttribute('data-close'));
     if (event.target.getAttribute('data-close') === null) {
 
       //console.log(event);
@@ -33,36 +35,61 @@
     });
   };
 
-  var _renderItem = function(selected, id, icon, title){
-    return '<a href="#" class="list-group-item'+((selected)?" active":"")+'" data-id="'+id+'"><span class="pull-right close" data-close="'+id+'">&times;</span><img src="'+icon+'">'+title+'</a>';
+  var _renderItem = function(index, selected, id, icon, title){
+    var ctx = 'list-group-item-info';
+    var classes = 'list-group-item'+((selected)?" active":"");
+    var itemclass = classes+((index == _selected)? ' '+ctx:'');
+    return '<a href="#" class="'+itemclass+'" data-id="'+id+'"><span class="pull-right close" data-close="'+id+'">&times;</span><img src="'+icon+'">'+title+'</a>';
   };
 
   var _renderList = function () {
-    var html='';
+    var html = '';
     var regex = new RegExp(_filter, 'i');
 
     //console.log(_tabs);
-    _tabs.forEach(function (ele) {
+    _tabs.forEach(function (ele, index) {
       if (regex.test(ele.title))
-        html += _renderItem(ele.active, ele.id, ele.favIconUrl, ele.title);
+        html += _renderItem(index, ele.active, ele.id, ele.favIconUrl, ele.title);
     });
 
     tablist.innerHTML = html;
+    var current = document.querySelector('.list-group-item-info');
+    if (current !== undefined) {
+      current.scrollIntoView(false);
+    }
+
   };
 
   chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, function(tabs){
     _tabs = tabs;
-    console.log(tabs);
+    //console.log(tabs);
     _renderList();
-    //for (var i = 0; i < tabs.length; i++) {
-    //  // tablist.append('<a href="#" class="list-group-item'+((tabs[i].selected)?" active":"")+'" data-id="'+tabs[i].id+'"><span class="pull-right close">&times;</span><img src="'+tabs[i].favIconUrl+'"><marquee onmouseout="this.stop()" onmouseover="this.start()">'+tabs[i].title+'</marquee></a>');
-    //  tablist.innerHTML = tablist.innerHTML+_renderItem(tabs[i].highlighted, tabs[i].id, tabs[i].favIconUrl, tabs[i].title);
-    //}
   });
 
-  filterBox.onkeyup = function () {
+  var _gotoItem = function () {
+    var id = _tabs[_selected].id;
+    chrome.tabs.update(id,{active: true},function(){});
+  };
+
+  var _handelKey = function (key) {
+    switch (key){
+      case _key.UP:
+        _selected--;
+        break;
+      case _key.DOWN:
+        if(_tabs.length-1 != _selected)
+          _selected++;
+        break;
+      case _key.ENTER:
+        _gotoItem();
+    }
+  };
+
+  filterBox.onkeyup = function (event) {
     _filter = filterBox.value;
+    _handelKey(event.keyCode);
     _renderList();
+    console.log(event);
   };
 
   filterBox.focus();
