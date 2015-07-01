@@ -39,7 +39,7 @@
     var ctx = 'list-group-item-info';
     var classes = 'list-group-item'+((selected)?" active":"");
     var itemclass = classes+((index == _selected)? ' '+ctx:'');
-    return '<a href="#" class="'+itemclass+'" data-id="'+id+'"><span class="pull-right close" data-close="'+id+'">&times;</span><img src="'+icon+'">'+title+'</a>';
+    return '<a href="#" class="'+itemclass+'" data-id="'+id+'"><span class="pull-right close" data-close="'+id+'">&times;</span><img src="'+(icon!==undefined?icon:'')+'">'+title+'</a>';
   };
 
   var _renderList = function () {
@@ -53,7 +53,7 @@
     });
 
     tablist.innerHTML = html;
-    var current = document.querySelector('.list-group-item-info');
+    var current = document.querySelector('.active');
     if (current !== undefined) {
       current.scrollIntoView(false);
     }
@@ -62,7 +62,7 @@
 
   chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, function(tabs){
     _tabs = tabs;
-    //console.log(tabs);
+    console.log(tabs);
     _renderList();
   });
 
