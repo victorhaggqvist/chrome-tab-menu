@@ -4,44 +4,49 @@ var concat = require('gulp-concat');
 var del = require('del');
 var es = require('event-stream');
 var size = require('gulp-size');
-var jshint = require('gulp-jshint');
+var eslint = require('gulp-eslint');
 var uglify = require('gulp-uglify');
 var minifyHTML = require('gulp-minify-html');
 var runSequence = require('run-sequence');
 var imageResize = require('gulp-image-resize');
 var rename = require("gulp-rename");
 var exec = require('child_process').exec;
+var babel = require("gulp-babel");
 
-gulp.task('css', function () {
+gulp.task('css', function() {
     var bootstrap = gulp.src('style/bootstrap.scss')
       .pipe(sass({
         includePaths: ["bower_components/bootstrap-sass/assets/stylesheets/bootstrap"],
         outputStyle: 'compressed'
-      }))
-      .pipe(size({title:'bootstrap.css'}));
+      }));
+      //.pipe(size({title:'bootstrap.css'}));
 
     var tabmenu = gulp.src('style/tabmenu.scss')
-      .pipe(sass({outputStyle: 'compressed'}))
-      .pipe(size({title:'tabmenu.css'}));
+      .pipe(sass({outputStyle: 'compressed'}));
+      //.pipe(size({title:'tabmenu.css'}));
 
-    es.concat(bootstrap, tabmenu)
+    return es.concat(bootstrap, tabmenu)
       .pipe(concat('style.css'))
       .pipe(gulp.dest('./dist/'));
 });
 
-gulp.task('clean', function (cb) {
+gulp.task('clean', function(cb) {
     del(['./dist/**'], cb);
 });
 
-gulp.task('lint', function () {
-    gulp.src('tabmenu.js')
-      .pipe(jshint())
-      .pipe(jshint.reporter('jshint-stylish'));
+gulp.task('lint', function() {
+    return gulp.src('tabmenu.js')
+      .pipe(eslint())
+      .pipe(eslint.format())
+      .pipe(eslint.failAfterError());
 });
 
 gulp.task('copy', function() {
     gulp.src('manifest.json').pipe(gulp.dest('./dist'));
+    gulp.src('assets/volume-up.png').pipe(gulp.dest('./dist'));
     gulp.src('bower_components/bootstrap-sass/assets/fonts/bootstrap/*').pipe(gulp.dest('./dist/fonts'));
+    gulp.src('./bower_components/mithril/mithril.min.js').pipe(gulp.dest('./dist'));
+    gulp.src('./bower_components/echojs/dist/echo.min.js').pipe(gulp.dest('./dist'));
 });
 
 gulp.task('copy:dist', ['copy']);
@@ -49,6 +54,13 @@ gulp.task('copy:dist', ['copy']);
 gulp.task('copy:debug', ['copy'], function() {
     gulp.src('tabmenu.js').pipe(gulp.dest('./dist'));
     gulp.src('popup.html').pipe(gulp.dest('./dist'));
+
+    gulp.src("tabmenu.js")
+    .pipe(babel({
+      "presets": ["es2015"],
+      "plugins": ["transform-es2015-arrow-functions"]
+    }))
+    .pipe(gulp.dest("./dist"));
 });
 
 gulp.task('minify', function() {
@@ -57,10 +69,10 @@ gulp.task('minify', function() {
       .pipe(size({title:'js'}))
       .pipe(gulp.dest('dist'));
 
-    gulp.src('popup.html')
-      .pipe(minifyHTML())
-      .pipe(size({title:'html'}))
-      .pipe(gulp.dest('dist'));
+    //gulp.src('popup.html')
+      //.pipe(minifyHTML())
+      //.pipe(size({title:'html'}))
+      //.pipe(gulp.dest('dist'));
 });
 
 gulp.task('icons', function() {
@@ -74,9 +86,5 @@ gulp.task('icons', function() {
     });
 });
 
-gulp.task('build:dist', function(cb) {
-    runSequence('clean', ['css', 'lint', 'minify', 'copy:dist', 'icons'], cb);
-});
-gulp.task('build', function(cb) {
-    runSequence('clean', ['css', 'lint', 'copy:debug', 'icons'], cb);
-});
+gulp.task('build:dist', ['css', 'lint', 'minify', 'copy:dist', 'icons']);
+gulp.task('build', ['css', 'lint', 'copy:debug']);
