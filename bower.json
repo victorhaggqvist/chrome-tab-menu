@@ -18,6 +18,8 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap-sass": "~3.3.1"
+    "bootstrap-sass": "~3.3.1",
+    "echojs": "~1.7.3",
+    "mithril": "~0.2.1"
   }
 }
