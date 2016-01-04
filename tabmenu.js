@@ -1,79 +1,111 @@
-// var Tab = data => {
-//     return {
-//         title: m.prop(data.title),
-//         icon: m.prop(data.favIconUrl),
-//         id: m.prop(data.id)
-//     };
-// };
-
-var TabList = Array;
-
 var TabView = {};
 TabView.vm = {
-    list: new TabList(),
-    selected: 0,
-    onLoadActive: -1
+    list: [],
+    selected: -1,
+    selectedTabId: -1,
+    onLoadActive: -1,
+    filterBox: null,
+    filter: ''
 };
 
 TabView.controller = () => {
 
     chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, tabs => {
         TabView.vm.list = tabs;
-        // TabView.vm.list = tabs.sort((a, b) => {
-        //     if (a.audible || b.audible) return 1;
-        //     else return a.id > b.id;
-        // });
 
-        console.log(tabs);
+        // console.log(tabs);
         tabs.forEach(t => {
             if (t.active) TabView.vm.onLoadActive = t.id;
         });
         m.render(root, TabView.view());
 
         TabView.focusActiveTab(TabView.vm.onLoadActive);
+
+        TabView.vm.filterBox = document.querySelector('input[type=text]');
+        TabView.vm.filterBox.focus();
     });
 
     // image lazy loading
     echo.init({
         unload: false
     });
-}
+};
 
 TabView.focusActiveTab = tabId => {
     var selector = '[data-id="'+tabId+'"]';
-    console.log(selector);
+    // console.log(selector);
     var tab = document.querySelector(selector);
-    tab.scrollIntoView(false);
-}
+    if (tab !== null) tab.scrollIntoView(false);
+};
 
 TabView.view = () => {
     return m('div', [
-        m('div', [
-            m('input[type=text][class=form-control][id=filter][placeholder="filter..."]'),
-            m('button', {class: 'btn btn-default'}, [
-                m('span', {class: 'glyphicon glyphicon-cog'})
-            ])
+        m('div[class=top]', [
+            m('input[type=text][class=form-control][id=filter][placeholder="filter..."]', {
+                onkeyup: (e) => TabView.handelKey(e)
+            })
         ]),
         m('div[id=tabs]',[
-            TabView.vm.list.map((item, index) => renderRow(item, index))
+            noisyTabs(TabView.vm.list),
+            TabView.allTabs(TabView.vm.list)
         ])
     ]);
 };
 
+var _key = {UP:38, DOWN:40, ENTER:13};
+TabView.handelKey = event => {
+    TabView.vm.filter = TabView.vm.filterBox.value;
+
+    switch (event.keyCode) {
+    case _key.UP:
+        if (TabView.vm.selected !== -1) TabView.vm.selected--;
+        TabView.vm.selectedTabId = TabView.vm.list[TabView.vm.selected].id;
+        break;
+    case _key.DOWN:
+        if (TabView.vm.list.length - 1 !== TabView.vm.selected) TabView.vm.selected++;
+        TabView.vm.selectedTabId = TabView.vm.list[TabView.vm.selected].id;
+        break;
+    case _key.ENTER:
+        TabView.goToTab(TabView.vm.selectedTabId);
+        break;
+    }
+
+    m.render(root, TabView.view());
+
+    if (TabView.vm.selected === -1) TabView.focusActiveTab(TabView.vm.onLoadActive);
+    else document.querySelector('.list-group-item-info').scrollIntoView(false);
+};
+
+TabView.allTabs = tabs => {
+    if (TabView.vm.filter === '') {
+        return tabs.map((item, index) => renderRow(item, index));
+    } else {
+        var regex = new RegExp(TabView.vm.filter, 'i');
+        return tabs
+            .filter(t => regex.test(t.title))
+            .map((item, index) => renderRow(item, index));
+    }
+};
+
 TabView.goToTab = tabId => {
     chrome.tabs.update(tabId, {active: true}, () => {});
-}
+};
 
 TabView.closeTab = tabId => {
     console.log('close '+tabId);
-}
+};
 
-var NoisyTabs = {};
-NoisyTabs.view = (ctrl, args) => {
-    return m('div',[
-        m('h1', 'Noisy Tabs'),
-        args.tabs.filter(t => t.audible).map((t, i) => renderRow(t, i))
-    ]);
+var noisyTabs = tabs => {
+    tabs = tabs.filter(t => t.audible);
+    if (tabs.length > 0) {
+        return m('div',[
+            m('li[class="list-group-item list-group-item-danger"]', 'Noisy'),
+            tabs.filter(t => t.audible).map((t, i) => renderRow(t, i)),
+            m('li[class="list-group-item"]', '')
+        ]);
+    } else {
+        return m('div');
+    }
 };
 
 var renderRow = (item, index) => {
@@ -83,7 +115,7 @@ var renderRow = (item, index) => {
 
     var useIcon = item.favIconUrl;
     if (item.favIconUrl === undefined) useIcon = '';
-    else if (item.audible) useIcon = 'volume-up.png'
+    else if (item.audible) useIcon = 'volume-up.png';
     else if (useIcon.substring(0,6) === 'chrome') useIcon = '';
 
     return m('a', {href: '#', class: itemclass, 'data-id': item.id, onclick: () => TabView.goToTab(item.id)}, [
@@ -92,113 +124,5 @@ var renderRow = (item, index) => {
     ], item.title);
 };
 
-
-
-
-
 var root = document.querySelector('#root');
 m.mount(root, TabView);
-
-window._tv = TabView;
-
-// (function () {
-//     //'use strict';
-
-//     var tablist = document.querySelector('#tabs');
-//     var _tabs;
-//     var filterBox = document.querySelector('#filter');
-//     // var _filter;
-//     var _key = {UP:38, DOWN:40, ENTER:13};
-//     var _selected = -1;
-//     var displayTabs = [];
-
-//     tablist.onclick = event => {
-//         event.preventDefault();
-//         //console.log('data close'+ event.target.getAttribute('data-close'));
-//         if (event.target.getAttribute('data-close') === null) {
-//             var tabId = parseInt(event.target.getAttribute('data-id'));
-//             chrome.tabs.update(tabId, {active: true}, function(){});
-//         } else {
-//             var index = parseInt(event.target.getAttribute('data-close'));
-//             chrome.tabs.remove(index, function(){});
-//             removeItem(index);
-//             renderList();
-//         }
-//         return true;
-//     };
-
-//     var removeItem = index => {
-//         _tabs = _tabs.filter(ele => ele.id != index);
-//     };
-
-//     var renderItem = (index, tab, selected, id, icon, title) => {
-//         //console.log(tab);
-//         var ctx = 'list-group-item-info';
-//         var classes = 'list-group-item' + (selected ? ' active' : '');
-//         var itemclass = classes + (index === _selected ? ' '+ctx : '');
-
-//         var useIcon = icon;
-//         if (icon === undefined) useIcon = '';
-//         else if (tab.audible) useIcon = 'volume-up.png'
-//         else if (icon.substring(0,6) === 'chrome') useIcon = '';
-
-//         return '<a href="#" class="'+itemclass+'" data-id="'+id+'"><span class="pull-right close" data-close="'+id+'">&times;</span><img src="'+useIcon+'">'+title+'</a>';
-//     };
-
-//     var renderList = function() {
-//         var html = '';
-//         //if (_filter !== undefined && _filter.length > 0) {
-//         //var regex = new RegExp(_filter, 'i');
-//         //displayTabs = _tabs.filter(ele => regex.test(ele.title));
-//         //} else {
-//         displayTabs = _tabs;
-//         //}
-
-//         // put tabs that make noice on top
-//         // displayTabs = displayTabs.sort((a, b) => {
-//         //     if (a.audible || b.audible) return 1;
-//         //     else return a.id > b.id;
-//         // });
-
-//         displayTabs.forEach((ele, index) => {
-//                 //console.log('ren '+index);
-//             html += renderItem(index, ele, ele.active, ele.id, ele.favIconUrl, ele.title);
-//         });
-
-//         tablist.innerHTML = html;
-//         //var current = document.querySelector('.list-group-item-info');
-//         //if (current !== undefined && current !== null) {
-//             //current.scrollIntoView(false);
-//         //}
-
-//     };
-
-
-//     var gotoItem = function() {
-//         var id = _tabs[_selected].id;
-//         chrome.tabs.update(id,{active: true},function(){});
-//     };
-
-//     var handelKey = key => {
-//         switch (key) {
-//             case _key.UP:
-//                 _selected--;
-//                 break;
-//             case _key.DOWN:
-//                 if (_tabs.length - 1 !== _selected) _selected++;
-//                 break;
-//             case _key.ENTER:
-//                 gotoItem();
-//         }
-//     };
-
-//     filterBox.onkeyup = event => {
-//         // _filter = filterBox.value;
-//         handelKey(event.keyCode);
-//         renderList();
-//     };
-
-//     filterBox.focus();
-
-
-// })();
