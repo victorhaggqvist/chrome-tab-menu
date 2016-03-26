@@ -1,4 +1,6 @@
-# chrome-tab-menu
-So much tabs.
+# Chrome Tab Menu
+> So many tabs
 
-A filterable list of onces open tabs. In extenssion format.
+A filterable list of tabs. In extension format.
+
+Can be used kind of like CtrlP as a fuzzy finder.

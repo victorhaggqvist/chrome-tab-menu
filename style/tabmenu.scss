@@ -1,43 +1,60 @@
-#tabs {
-  height: 650px;
-  width: 500px;
-  margin-top: 36px;
-  margin-bottom: 0;
+@import 'bootstrap';
 
-  img {
-    height: 16px;
-    margin-right: 10px;
-    width: 16px;
-  }
+#tabs {
+    height: 650px;
+    width: 500px;
+    margin-top: 36px;
+    margin-bottom: 0;
+
+    img {
+        height: 16px;
+        margin-right: 10px;
+        width: 16px;
+    }
 }
 
 a.list-group-item {
-  padding-bottom: 6px;
-  padding-top: 6px;
+    padding-bottom: 6px;
+    padding-top: 6px;
+}
+
+.list-group-item:first-child {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
 }
 
 .top {
-  position: fixed;
-  right: 0;
-  left: 0;
-  top:0;
-  z-index: 1030;
-  input {
-    width: 91%;
-    display: inline-block;
-  }
+    position: fixed;
+    right: 0;
+    left: 0;
+    top:0;
+    z-index: 1030;
+    background: white;
+
+    input {
+        // width: 91%;
+        border: 0;
+        border-bottom: 2px #aaaaaa solid;
+        border-radius: 0;
+        display: inline-block;
+    }
 }
 
 .form-control {
-  height: 33px;
+    height: 33px;
 }
 
 .close {
-  margin-top: -6px;
-  padding: 6px;
+    margin-top: -6px;
+    padding: 6px;
 
-  &:hover {
-    background-color: #999;
-    color: #fff;
-  }
+    &:hover {
+        background-color: #999;
+        color: #fff;
+    }
+}
+
+.list-group-item:last-child {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
 }
